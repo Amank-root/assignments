@@ -5,6 +5,19 @@
 */
 
 function isAnagram(str1, str2) {
+  if (str1.length != str2.length) return false
+  anagram = true;
+  for (i=0; i<str1.length; i++){
+    if (anagram != true) return false
+    if (str2.toLowerCase().includes(str1[i].toLowerCase())){
+      continue;
+    }
+    else{
+      anagram = false
+      break;
+    }
+  }
+  return anagram
 
 }
 
