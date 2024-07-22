@@ -39,11 +39,86 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-  const express = require('express');
-  const bodyParser = require('body-parser');
-  
-  const app = express();
-  
-  app.use(bodyParser.json());
-  
-  module.exports = app;
+const express = require('express');
+const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid');
+const { pipeline } = require('supertest/lib/test');
+const fs = require("fs");
+const { title } = require('process');
+const app = express();
+
+
+app.use(bodyParser.json());
+
+// const fileData = fs.readFileSync("./todos.json")
+
+
+let todosArray = []
+
+app.route("/todos")
+  .get((req, res) => {
+    // return res.json(JSON.parse(fileData))
+    return res.json(todosArray)
+  })
+  .post((req, res) => {
+    console.log(req.body)
+    const { title, description } = req.body;
+    const id = uuidv4()
+    todosArray = [...todosArray, { id, title: title, description: description, completed: false }]
+
+
+    // let populateData = JSON.parse(fileData)
+    // console.log(populateData)
+    // populateData = [...populateData, { id, title: title, description: description, completed: false }]
+    // let data = JSON.stringify(populateData)
+    // console.log(`${data} fsdf`)
+    // fs.writeFile('./todos.json', data, (err) => console.log(err))
+
+    return res.status(201).json({ id: id })
+  })
+
+app.route("/todos/:id")
+  .get((req, res) => {
+
+    const pId = req.params["id"]
+    const data = todosArray.filter((todo) => todo.id === pId)
+
+    if (data.length == 0) return res.status(404).send("404 Not Found")
+    return res.send(data[0])
+
+  })
+  .put((req, res) => {
+
+    const pId = req.params["id"]
+    const { title, description } = req.body
+
+    const result = todosArray.map((todo) => {
+      if (todo.id === pId) {
+        todo.title = title
+        todo.description = description
+        todo.completed = !todo.completed
+        return true
+      }
+    })
+
+    if (!result.includes(true)) return res.status(404).send("404 Not Found")
+    return res.send("Update")
+
+  })
+  .delete((req, res) => {
+
+    const pId = req.params["id"]
+    const prevData = todosArray.length
+
+    todosArray = todosArray.filter((todo) => todo.id != pId)
+    if (prevData == todosArray.length) return res.status(404).send("404 Not Found")
+
+    return res.send("Ok")
+
+  })
+
+
+
+app.listen(3000)
+
+module.exports = app;
