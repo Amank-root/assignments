@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
 const jwtPassword = 'secret';
+const { z } = require("zod")
+const email = z.string().email();
+const vpassword = z.string().min(6);
 
 
 /**
@@ -15,6 +18,13 @@ const jwtPassword = 'secret';
  */
 function signJwt(username, password) {
     // Your code here
+    const checkUsename = email.safeParse(username).success;
+    const checkPass = vpassword.safeParse(password).success;
+    if (checkUsename && checkPass) {
+        const data = jwt.sign({ username: username }, jwtPassword);
+        return data
+    }
+    return null
 }
 
 /**
@@ -27,23 +37,37 @@ function signJwt(username, password) {
  */
 function verifyJwt(token) {
     // Your code here
+    const data = jwt.verify(token, jwtPassword, (err, decode) => {
+        if (err) {
+            return false;
+        }
+        return true
+    })
+    return data;
 }
 
 /**
  * Decodes a JWT to reveal its payload without verifying its authenticity.
- *
- * @param {string} token - The JWT string to decode.
- * @returns {object|false} The decoded payload of the JWT if the token is a valid JWT format.
- *                         Returns false if the token is not a valid JWT format.
- */
+*
+* @param {string} token - The JWT string to decode.
+* @returns {object|false} The decoded payload of the JWT if the token is a valid JWT format.
+*                         Returns false if the token is not a valid JWT format.
+*/
 function decodeJwt(token) {
     // Your code here
+    try {
+        let data = jwt.decode(token)
+        if (data == null) return false
+        return true
+    } catch (err) {
+        return false
+    }
 }
 
 
 module.exports = {
-  signJwt,
-  verifyJwt,
-  decodeJwt,
-  jwtPassword,
+    signJwt,
+    verifyJwt,
+    decodeJwt,
+    jwtPassword,
 };
